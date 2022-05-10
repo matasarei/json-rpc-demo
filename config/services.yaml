@@ -22,3 +22,19 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    JsonRPC\Server:
+        factory: ['@App\JsonRpc\Factory\ServerFactory', 'createServer']
+
+    App\Controller\:
+        resource: '../src/Controller'
+        public: true
+        tags: ['controller.service_arguments']
+
+    App\JsonRpc\HandlerCollection: ~
+
+    App\JsonRpc\Handler\HelloWorldHandler:
+        tags: ['app.json_rpc_handler']
+
+    App\JsonRpc\Handler\ConcatHandler:
+        tags: ['app.json_rpc_handler']

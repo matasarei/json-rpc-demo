@@ -1,3 +1,4 @@
-#index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+rpc:
+  path: /rpc
+  controller: App\Controller\JsonRcpController::index
+  methods: [POST]
