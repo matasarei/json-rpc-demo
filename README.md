@@ -1,10 +1,11 @@
 # JSON RPC Symfony Demo
-A JSON RPC server demo based on Symfony and the [JsonRPC](https://github.com/matasarei/JsonRPC) lib.
+A JSON RPC server demo based on Symfony and the [JSON-RPC](https://github.com/matasarei/json-rpc) lib.
 ## Quick start
 
 ```bash
 docker-compose build
 docker-compose up -d
+docker-compose exec fpm composer install
 ```
 
 ## Request example
