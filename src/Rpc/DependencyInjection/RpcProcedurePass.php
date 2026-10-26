@@ -34,8 +34,7 @@ final class RpcProcedurePass implements CompilerPassInterface
             $class = $container->getDefinition($id)->getClass() ?? $id;
 
             foreach ($tags as $tag) {
-                $procedure = $tag['procedure'];
-                $method = $tag['method'];
+                [$procedure, $method] = $this->procedureOf($id, $tag);
 
                 if (isset($procedures[$procedure])) {
                     throw new LogicException(sprintf(
@@ -59,5 +58,24 @@ final class RpcProcedurePass implements CompilerPassInterface
         $container->getDefinition(ServerFactory::class)
             ->setArgument('$procedures', $procedures)
             ->setArgument('$procedureLocator', ServiceLocatorTagPass::register($container, $services));
+    }
+
+    /**
+     * @return array{string, string} Procedure name and method
+     */
+    private function procedureOf(string $id, mixed $tag): array
+    {
+        $procedure = is_array($tag) ? $tag['procedure'] ?? null : null;
+        $method = is_array($tag) ? $tag['method'] ?? null : null;
+
+        if (!is_string($procedure) || !is_string($method)) {
+            throw new LogicException(sprintf(
+                'The "%s" tag of service "%s" needs a "procedure" and a "method" attribute.',
+                self::TAG,
+                $id,
+            ));
+        }
+
+        return [$procedure, $method];
     }
 }

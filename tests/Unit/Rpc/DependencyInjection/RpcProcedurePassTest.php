@@ -58,6 +58,21 @@ final class RpcProcedurePassTest extends TestCase
         (new RpcProcedurePass())->process($container);
     }
 
+    public function testRefusesATagWithoutAProcedureOrAMethod(): void
+    {
+        $container = $this->container();
+        $container->register(EchoProcedures::class, EchoProcedures::class)
+            ->addTag(RpcProcedurePass::TAG, ['procedure' => 'text.echo']);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage(sprintf(
+            'The "app.rpc_procedure" tag of service "%s" needs a "procedure" and a "method" attribute.',
+            EchoProcedures::class,
+        ));
+
+        (new RpcProcedurePass())->process($container);
+    }
+
     public function testDoesNothingWithoutAServerFactory(): void
     {
         $container = new ContainerBuilder();

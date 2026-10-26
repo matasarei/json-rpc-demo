@@ -6,9 +6,9 @@ namespace App\Rpc;
 
 use JsonRPC\MiddlewareInterface;
 use JsonRPC\Server;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
+use Symfony\Contracts\Service\ServiceProviderInterface;
 
 /**
  * Builds the JSON-RPC server the controller answers with.
@@ -20,13 +20,13 @@ final readonly class ServerFactory
     /**
      * @param array<string, array{class-string, string}> $procedures Class and method keyed by
      *        procedure name, filled in by RpcProcedurePass
-     * @param ContainerInterface $procedureLocator Procedure services keyed by class name
+     * @param ServiceProviderInterface<object> $procedureLocator Procedure services keyed by class name
      * @param array<string, string> $users Passwords keyed by username
      * @param iterable<MiddlewareInterface> $middlewares Every service implementing MiddlewareInterface
      */
     public function __construct(
         private array $procedures,
-        private ContainerInterface $procedureLocator,
+        private ServiceProviderInterface $procedureLocator,
         #[Autowire(env: 'json:RPC_USERS')]
         private array $users,
         #[Autowire(env: 'int:RPC_BATCH_LIMIT')]
