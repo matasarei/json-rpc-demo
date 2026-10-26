@@ -24,3 +24,13 @@ services:
 
     JsonRPC\Server:
         factory: ['@App\Rpc\ServerFactory', 'create']
+
+when@test:
+    services:
+        # The client side talks to the kernel in-process instead of over a socket.
+        App\Tests\Support\KernelHttpCallback:
+            arguments: ['@http_kernel']
+
+        rpc.client:
+            class: Symfony\Component\HttpClient\MockHttpClient
+            arguments: ['@App\Tests\Support\KernelHttpCallback', '%env(RPC_URL)%']
