@@ -11,6 +11,7 @@ use App\Tests\Fixture\ReverseProcedures;
 use JsonRPC\MiddlewareInterface;
 use JsonRPC\Server\ServerRequest;
 use JsonRPC\Server\ServerResponse;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
@@ -66,12 +67,25 @@ final class ServerFactoryTest extends TestCase
         $this->assertSame([], $this->built);
     }
 
+    public function testRefusesToBuildAServerWithoutUsers(): void
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('RPC_USERS lists no user');
+
+        $this->factory(users: [])->create();
+    }
+
     /**
      * @param iterable<MiddlewareInterface> $middlewares
      * @param array<string, array{class-string, string}>|null $procedures
+     * @param array<string, string> $users
      */
-    private function factory(int $batchLimit = 20, iterable $middlewares = [], ?array $procedures = null): ServerFactory
-    {
+    private function factory(
+        int $batchLimit = 20,
+        iterable $middlewares = [],
+        ?array $procedures = null,
+        array $users = ['demo' => 'demo-secret'],
+    ): ServerFactory {
         $locator = new ServiceLocator([
             EchoProcedures::class => function (): EchoProcedures {
                 $this->built[] = EchoProcedures::class;
@@ -91,7 +105,7 @@ final class ServerFactoryTest extends TestCase
                 'text.reverse' => [ReverseProcedures::class, 'reverse'],
             ],
             $locator,
-            ['demo' => 'demo-secret'],
+            $users,
             $batchLimit,
             $middlewares,
         );

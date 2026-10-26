@@ -6,6 +6,7 @@ namespace App\Rpc;
 
 use JsonRPC\MiddlewareInterface;
 use JsonRPC\Server;
+use LogicException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Contracts\Service\ServiceProviderInterface;
@@ -36,8 +37,18 @@ final readonly class ServerFactory
     ) {
     }
 
+    /**
+     * @throws LogicException When no user is configured
+     */
     public function create(): Server
     {
+        // An empty list turns authentication off in json-rpc, and every
+        // username, AdminOnlyMiddleware's "admin" included, would be taken on
+        // trust: refuse to start rather than answer anyone.
+        if ($this->users === []) {
+            throw new LogicException('RPC_USERS lists no user: the JSON-RPC server would accept anyone.');
+        }
+
         $server = (new Server())
             ->authentication($this->users)
             ->withBatchLimit($this->batchLimit);
