@@ -48,7 +48,9 @@ final class ServerFactoryTest extends TestCase
 
         $response = $this->call($this->factory(batchLimit: 2), [$call, $call, $call]);
 
-        $this->assertSame(-32600, $this->decode($response)['error']['code'] ?? null);
+        $error = $this->decode($response)['error'] ?? null;
+        $this->assertIsArray($error);
+        $this->assertSame(-32600, $error['code'] ?? null);
         $this->assertSame([], $this->built);
     }
 

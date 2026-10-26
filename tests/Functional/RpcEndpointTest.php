@@ -140,7 +140,9 @@ final class RpcEndpointTest extends WebTestCase
 
         $this->post(['jsonrpc' => '2.0', 'method' => 'admin.versions', 'id' => 1], 'admin', 'admin-secret');
         $this->assertResponseIsSuccessful();
-        $this->assertSame(PHP_VERSION, $this->answer()['result']['php'] ?? null);
+        $versions = $this->answer()['result'] ?? null;
+        $this->assertIsArray($versions);
+        $this->assertSame(PHP_VERSION, $versions['php'] ?? null);
     }
 
     public function testOnlyAcceptsPost(): void
