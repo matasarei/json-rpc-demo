@@ -61,6 +61,17 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "lint": "phpcs",
+        "stan": [
+            "@php bin/console cache:warmup --env=dev --quiet",
+            "phpstan analyse --no-progress --memory-limit=512M"
+        ],
+        "test": "phpunit",
+        "check": [
+            "@lint",
+            "@stan",
+            "@test"
         ]
     },
     "conflict": {
