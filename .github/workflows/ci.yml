@@ -37,7 +37,7 @@ jobs:
         run: docker compose exec -T app bin/console app:rpc:demo
       - name: Call the server from outside the container
         run: >-
-          curl -fsS -u demo:demo-secret
+          curl -fsS -u demo:demo-secret -H 'Content-Type: application/json'
           -d '{"jsonrpc":"2.0","method":"greeting.hello","params":{"name":"CI"},"id":1}'
           http://localhost:8080/rpc
       - name: Show the server logs

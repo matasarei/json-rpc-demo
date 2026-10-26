@@ -145,6 +145,53 @@ final class RpcEndpointTest extends WebTestCase
         $this->assertSame(PHP_VERSION, $versions['php'] ?? null);
     }
 
+    /**
+     * A cross-site form can carry text/plain or form data with the browser's
+     * cached credentials, so only application/json reaches the server.
+     */
+    #[DataProvider('contentTypesBrowsersSendCrossSite')]
+    public function testRefusesAnythingButJson(?string $contentType): void
+    {
+        $server = ['HTTP_AUTHORIZATION' => 'Basic ' . base64_encode('demo:demo-secret')];
+
+        if ($contentType !== null) {
+            $server['CONTENT_TYPE'] = $contentType;
+        }
+
+        $this->client->request(
+            'POST',
+            '/rpc',
+            server: $server,
+            content: '{"jsonrpc":"2.0","method":"greeting.hello","id":1}',
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNSUPPORTED_MEDIA_TYPE);
+        $this->assertSame(
+            ['jsonrpc' => '2.0', 'error' => ['code' => -32600, 'message' => 'Invalid Request'], 'id' => null],
+            $this->answer(),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string|null}>
+     */
+    public static function contentTypesBrowsersSendCrossSite(): iterable
+    {
+        yield 'text/plain' => ['text/plain'];
+        yield 'form' => ['application/x-www-form-urlencoded'];
+        yield 'none' => [null];
+    }
+
+    public function testAcceptsJsonWithACharset(): void
+    {
+        $this->client->request('POST', '/rpc', server: [
+            'CONTENT_TYPE' => 'application/json; charset=utf-8',
+            'HTTP_AUTHORIZATION' => 'Basic ' . base64_encode('demo:demo-secret'),
+        ], content: '{"jsonrpc":"2.0","method":"greeting.hello","id":1}');
+
+        $this->assertResponseIsSuccessful();
+    }
+
     public function testOnlyAcceptsPost(): void
     {
         $this->client->request('GET', '/rpc');

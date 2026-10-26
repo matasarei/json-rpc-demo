@@ -109,22 +109,25 @@ $client->execute('math.add', [2, 3]); // 5
 
 ## Calling it with curl
 
+The endpoint only accepts `Content-Type: application/json`; anything else is answered with
+415, so a cross-site form cannot reach it with a browser's cached credentials.
+
 ```bash
-curl -u demo:demo-secret -d '{"jsonrpc":"2.0","method":"greeting.hello","params":{"name":"Ada"},"id":1}' http://localhost:8080/rpc
+curl -u demo:demo-secret -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"greeting.hello","params":{"name":"Ada"},"id":1}' http://localhost:8080/rpc
 ```
 ```json
 {"jsonrpc":"2.0","result":"Hello, Ada!","id":1}
 ```
 
 ```bash
-curl -u demo:demo-secret -d '[{"jsonrpc":"2.0","method":"math.add","params":[2,3],"id":1},{"jsonrpc":"2.0","method":"math.divide","params":[1,0],"id":2}]' http://localhost:8080/rpc
+curl -u demo:demo-secret -H 'Content-Type: application/json' -d '[{"jsonrpc":"2.0","method":"math.add","params":[2,3],"id":1},{"jsonrpc":"2.0","method":"math.divide","params":[1,0],"id":2}]' http://localhost:8080/rpc
 ```
 ```json
 [{"jsonrpc":"2.0","result":5,"id":1},{"jsonrpc":"2.0","error":{"code":1001,"message":"Division by zero","data":{"dividend":1}},"id":2}]
 ```
 
 ```bash
-curl -u demo:demo-secret -d '{"jsonrpc":"2.0","method":"diagnostics.fail","id":1}' http://localhost:8080/rpc
+curl -u demo:demo-secret -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"diagnostics.fail","id":1}' http://localhost:8080/rpc
 ```
 ```json
 {"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal error"},"id":1}
