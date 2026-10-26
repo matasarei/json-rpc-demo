@@ -1,5 +1,13 @@
 # JSON-RPC Symfony Demo
 
+[![CI](https://github.com/matasarei/json-rpc-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/matasarei/json-rpc-demo/actions/workflows/ci.yml)
+[![fguillot/json-rpc](https://img.shields.io/packagist/v/fguillot/json-rpc.svg?label=fguillot%2Fjson-rpc)](https://packagist.org/packages/fguillot/json-rpc)
+[![json-rpc downloads](https://img.shields.io/packagist/dt/fguillot/json-rpc.svg?label=json-rpc%20downloads)](https://packagist.org/packages/fguillot/json-rpc)
+[![PHP](https://img.shields.io/badge/php-%3E%3D8.4-777bb3?logo=php&logoColor=white)](composer.json)
+[![Symfony](https://img.shields.io/badge/symfony-7.4%20LTS-black?logo=symfony)](https://symfony.com/releases/7.4)
+[![JSON-RPC](https://img.shields.io/badge/JSON--RPC-2.0-blue)](https://www.jsonrpc.org/specification)
+[![License](https://img.shields.io/github/license/matasarei/json-rpc-demo.svg)](LICENSE)
+
 A Symfony 7.4 application showing [fguillot/json-rpc](https://github.com/matasarei/json-rpc)
 2.0 from both ends: a **server** answering on `POST /rpc`, and a **client** that calls it
 the way an application would. Both run in one FrankenPHP container.
@@ -39,20 +47,20 @@ Add `-vv` to see each HTTP request the client sends.
 
 | Scenario | json-rpc 2.0 feature | Where |
 |---|---|---|
-| Procedures declared with `#[AsRpcProcedure('math.add')]` | an explicit allowlist instead of every public method | [`src/Rpc/Procedure/`](src/Rpc/Procedure), [`src/Kernel.php`](src/Kernel.php) |
-| A procedure class is built on its first call | `ProcedureHandler::withInstanceFactory()` bridging the Symfony container | [`src/Rpc/ServerFactory.php`](src/Rpc/ServerFactory.php), [`src/Rpc/DependencyInjection/RpcProcedurePass.php`](src/Rpc/DependencyInjection/RpcProcedurePass.php) |
-| The server inside a controller | `Server::execute(ServerRequest)` returning a `ServerResponse` with body, status and headers | [`src/Controller/RpcController.php`](src/Controller/RpcController.php) |
-| 1–2. Named and positional parameters | `Client::execute()` | [`src/Command/RpcDemoCommand.php`](src/Command/RpcDemoCommand.php) |
-| 3. A notification, answered with HTTP 204 | `Client::notify()` | 〃 |
-| 4. A batch, answers matched by id and returned in call order | `Client::batch()` → `BatchBuilder` | 〃 |
-| 5. A batch with a failing call | `BatchFailedException::getResults()` / `getErrors()` | 〃 |
-| 6. Unknown procedure | `MethodNotFoundException` (-32601) | 〃 |
-| 7. `["5", "3"]` to `add(int $a, int $b)` | no type coercion: `InvalidParamsException` (-32602) | [`src/Rpc/Procedure/MathProcedures.php`](src/Rpc/Procedure/MathProcedures.php) |
-| 8. Division by zero | an application error relayed with its code and data: `ResponseException` | [`src/Rpc/Exception/DivisionByZeroException.php`](src/Rpc/Exception/DivisionByZeroException.php) |
-| 9. A procedure fails with a database password in its message | internal error masking, on by default: the client sees `-32603 Internal error` | [`src/Rpc/Procedure/DiagnosticsProcedures.php`](src/Rpc/Procedure/DiagnosticsProcedures.php) |
-| 10. Wrong password | HTTP Basic authentication: 401 → `AccessDeniedException` | [`src/Rpc/ServerFactory.php`](src/Rpc/ServerFactory.php) |
-| 11. `admin.versions` as `demo`, then as `admin` | middleware answering 403 → `AccessDeniedException` | [`src/Rpc/Middleware/AdminOnlyMiddleware.php`](src/Rpc/Middleware/AdminOnlyMiddleware.php) |
-| The client sends through Symfony HttpClient | `Psr18Transport` with any PSR-18 client; redirects never followed | [`src/Rpc/RpcClientFactory.php`](src/Rpc/RpcClientFactory.php), [`config/packages/framework.yaml`](config/packages/framework.yaml) |
+| Procedures declared with `#[AsRpcProcedure('math.add')]` | an explicit allowlist instead of every public method | [`Procedure/`](src/Rpc/Procedure), [`Kernel`](src/Kernel.php) |
+| A procedure class is built on its first call | `ProcedureHandler::withInstanceFactory()` bridging the Symfony container | [`ServerFactory`](src/Rpc/ServerFactory.php), [`RpcProcedurePass`](src/Rpc/DependencyInjection/RpcProcedurePass.php) |
+| The server inside a controller | `Server::execute(ServerRequest)` returning a `ServerResponse` with body, status and headers | [`RpcController`](src/Controller/RpcController.php) |
+| 1–2. Named and positional parameters | `Client::execute()` | [`RpcDemoCommand`](src/Command/RpcDemoCommand.php) |
+| 3. A notification, answered with HTTP 204 | `Client::notify()` | [`RpcDemoCommand`](src/Command/RpcDemoCommand.php) |
+| 4. A batch, answers matched by id and returned in call order | `Client::batch()` → `BatchBuilder` | [`RpcDemoCommand`](src/Command/RpcDemoCommand.php) |
+| 5. A batch with a failing call | `BatchFailedException::getResults()` / `getErrors()` | [`RpcDemoCommand`](src/Command/RpcDemoCommand.php) |
+| 6. Unknown procedure | `MethodNotFoundException` (-32601) | [`RpcDemoCommand`](src/Command/RpcDemoCommand.php) |
+| 7. `["5", "3"]` to `add(int $a, int $b)` | no type coercion: `InvalidParamsException` (-32602) | [`MathProcedures`](src/Rpc/Procedure/MathProcedures.php) |
+| 8. Division by zero | an application error relayed with its code and data: `ResponseException` | [`DivisionByZeroException`](src/Rpc/Exception/DivisionByZeroException.php) |
+| 9. A procedure fails with a database password in its message | internal error masking, on by default: the client sees `-32603 Internal error` | [`DiagnosticsProcedures`](src/Rpc/Procedure/DiagnosticsProcedures.php) |
+| 10. Wrong password | HTTP Basic authentication: 401 → `AccessDeniedException` | [`ServerFactory`](src/Rpc/ServerFactory.php) |
+| 11. `admin.versions` as `demo`, then as `admin` | middleware answering 403 → `AccessDeniedException` | [`AdminOnlyMiddleware`](src/Rpc/Middleware/AdminOnlyMiddleware.php) |
+| The client sends through Symfony HttpClient | `Psr18Transport` with any PSR-18 client; redirects never followed | [`RpcClientFactory`](src/Rpc/RpcClientFactory.php), [`framework.yaml`](config/packages/framework.yaml) |
 
 ## The server
 
