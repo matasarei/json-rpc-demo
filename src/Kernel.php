@@ -6,6 +6,8 @@ namespace App;
 
 use App\Rpc\Attribute\AsRpcProcedure;
 use App\Rpc\DependencyInjection\RpcProcedurePass;
+use App\Rpc\ServerFactory;
+use JsonRPC\MiddlewareInterface;
 use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -30,6 +32,9 @@ class Kernel extends BaseKernel
                 ]);
             },
         );
+
+        $container->registerForAutoconfiguration(MiddlewareInterface::class)
+            ->addTag(ServerFactory::MIDDLEWARE_TAG);
 
         $container->addCompilerPass(new RpcProcedurePass());
     }

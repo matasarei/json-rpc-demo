@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Rpc;
 
+use App\Rpc\Middleware\AdminOnlyMiddleware;
 use App\Rpc\ServerFactory;
 use App\Tests\Fixture\EchoProcedures;
 use App\Tests\Fixture\ReverseProcedures;
+use JsonRPC\MiddlewareInterface;
 use JsonRPC\Server\ServerRequest;
 use JsonRPC\Server\ServerResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -50,7 +52,23 @@ final class ServerFactoryTest extends TestCase
         $this->assertSame([], $this->built);
     }
 
-    private function factory(int $batchLimit = 20): ServerFactory
+    public function testAppliesTheMiddlewares(): void
+    {
+        $factory = $this->factory(middlewares: [new AdminOnlyMiddleware()], procedures: [
+            'admin.echo' => [EchoProcedures::class, 'echo'],
+        ]);
+
+        $response = $this->call($factory, ['jsonrpc' => '2.0', 'method' => 'admin.echo', 'params' => ['hi'], 'id' => 1]);
+
+        $this->assertSame(403, $response->statusCode);
+        $this->assertSame([], $this->built);
+    }
+
+    /**
+     * @param iterable<MiddlewareInterface> $middlewares
+     * @param array<string, array{class-string, string}>|null $procedures
+     */
+    private function factory(int $batchLimit = 20, iterable $middlewares = [], ?array $procedures = null): ServerFactory
     {
         $locator = new ServiceLocator([
             EchoProcedures::class => function (): EchoProcedures {
@@ -66,13 +84,14 @@ final class ServerFactoryTest extends TestCase
         ]);
 
         return new ServerFactory(
-            [
+            $procedures ?? [
                 'text.echo' => [EchoProcedures::class, 'echo'],
                 'text.reverse' => [ReverseProcedures::class, 'reverse'],
             ],
             $locator,
             ['demo' => 'demo-secret'],
             $batchLimit,
+            $middlewares,
         );
     }
 
