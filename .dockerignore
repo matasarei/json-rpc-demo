@@ -1,0 +1,8 @@
+.git
+.idea
+.tasks
+var
+vendor
+.env.local
+.env.local.php
+.env.*.local

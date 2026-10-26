@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    name: Checks (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl
+          coverage: none
+      - name: Validate composer.json
+        run: composer validate --strict
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+      - name: Coding standard, static analysis and tests
+        run: composer check
+
+  smoke:
+    name: Client against the running server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the demo
+        run: docker compose up -d --build --wait
+      - name: Run the client tour
+        run: docker compose exec -T app bin/console app:rpc:demo
+      - name: Call the server from outside the container
+        run: >-
+          curl -fsS -u demo:demo-secret -H 'Content-Type: application/json'
+          -d '{"jsonrpc":"2.0","method":"greeting.hello","params":{"name":"CI"},"id":1}'
+          http://localhost:8080/rpc
+      - name: Show the server logs
+        if: failure()
+        run: docker compose logs

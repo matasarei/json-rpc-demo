@@ -1,24 +1,20 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
-    #csrf_protection: true
-    http_method_override: false
 
-    # Enables session support. Note that the session will ONLY be started if you read or write from it.
-    # Remove or comment this section to explicitly disable session support.
-    session:
-        handler_id: null
-        cookie_secure: auto
-        cookie_samesite: lax
-        storage_factory_id: session.storage.factory.native
+    # A JSON-RPC endpoint is stateless: no session.
+    session: false
 
-    #esi: true
-    #fragments: true
-    php_errors:
-        log: true
+    http_client:
+        scoped_clients:
+            # The client side of the demo: app:rpc:demo calls the server through it.
+            rpc.client:
+                base_uri: '%env(RPC_URL)%'
+                timeout: 5
+                # Never follow a redirect: it would resend the credentials to
+                # wherever the redirect points.
+                max_redirects: 0
 
 when@test:
     framework:
         test: true
-        session:
-            storage_factory_id: session.storage.factory.mock_file
