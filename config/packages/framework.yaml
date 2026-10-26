@@ -5,6 +5,16 @@ framework:
     # A JSON-RPC endpoint is stateless: no session.
     session: false
 
+    http_client:
+        scoped_clients:
+            # The client side of the demo: app:rpc:demo calls the server through it.
+            rpc.client:
+                base_uri: '%env(RPC_URL)%'
+                timeout: 5
+                # Never follow a redirect: it would resend the credentials to
+                # wherever the redirect points.
+                max_redirects: 0
+
 when@test:
     framework:
         test: true
