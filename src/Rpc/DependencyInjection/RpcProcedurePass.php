@@ -33,6 +33,17 @@ final class RpcProcedurePass implements CompilerPassInterface
         foreach ($container->findTaggedServiceIds(self::TAG) as $id => $tags) {
             $class = $container->getDefinition($id)->getClass() ?? $id;
 
+            // json-rpc resolves a procedure by class name, so the instance factory
+            // can only hand out one service per class.
+            if (isset($services[$class])) {
+                throw new LogicException(sprintf(
+                    'Services "%s" and "%s" both declare JSON-RPC procedures with class %s; only one service per class can.',
+                    (string) $services[$class],
+                    $id,
+                    $class,
+                ));
+            }
+
             foreach ($tags as $tag) {
                 [$procedure, $method] = $this->procedureOf($id, $tag);
 

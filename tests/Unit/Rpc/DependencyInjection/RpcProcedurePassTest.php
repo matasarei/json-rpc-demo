@@ -58,6 +58,23 @@ final class RpcProcedurePassTest extends TestCase
         (new RpcProcedurePass())->process($container);
     }
 
+    public function testRefusesTwoServicesOfTheSameClass(): void
+    {
+        $container = $this->container();
+        $container->register('echo.first', EchoProcedures::class)
+            ->addTag(RpcProcedurePass::TAG, ['procedure' => 'text.echo', 'method' => 'echo']);
+        $container->register('echo.second', EchoProcedures::class)
+            ->addTag(RpcProcedurePass::TAG, ['procedure' => 'text.echo_again', 'method' => 'echo']);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Services "echo.first" and "echo.second" both declare JSON-RPC procedures with class %s',
+            EchoProcedures::class,
+        ));
+
+        (new RpcProcedurePass())->process($container);
+    }
+
     public function testRefusesATagWithoutAProcedureOrAMethod(): void
     {
         $container = $this->container();
